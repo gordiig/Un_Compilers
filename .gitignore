@@ -1,0 +1,7 @@
+*.DS_Store
+Literature/
+*.idea
+__pycache__
+*.pdf
+ot/
+*.png
