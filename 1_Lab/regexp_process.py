@@ -40,11 +40,7 @@ def __normalize_regexp(regexp: str) -> str:
         if regexp[i] not in ALL_TEST_SYMBOLS:
             raise RegexpError(message=f'Неизвестный символ "{regexp[i]}"')
         nregexp += regexp[i]
-        if regexp[i] in TEST_ALPHABET and regexp[i+1] in TEST_ALPHABET:
-            nregexp += CONCAT_OP
-        elif regexp[i] in ('*', '+') and regexp[i+1] in TEST_ALPHABET:
-            nregexp += CONCAT_OP
-        elif regexp[i] in TEST_ALPHABET and regexp[i+1] == '(':
+        if regexp[i] in TEST_ALPHABET + ['*', '+', ')'] and regexp[i+1] in TEST_ALPHABET + ['(']:
             nregexp += CONCAT_OP
     if regexp[-1] not in ALL_TEST_SYMBOLS:
         raise RegexpError(message=f'Неизвестный символ "{regexp[-1]}"')
