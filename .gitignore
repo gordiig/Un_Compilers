@@ -2,5 +2,10 @@
 Literature/
 *.idea
 __pycache__
-ot/
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.gz
+*.toc
 *.png
