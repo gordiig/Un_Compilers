@@ -85,7 +85,7 @@ class Grammar:
                  nterms: Iterable[Union[str, NoTermSymbol]],
                  eps_terminal: Union[str, TermSymbol],
                  start_nterm: Union[str, NoTermSymbol],
-                 rules: Dict[Union[str, NoTermSymbol], List[List[Union[str, TermSymbol]]]]):
+                 rules: Dict[Union[str, NoTermSymbol], List[List[Union[str, TermSymbol, NoTermSymbol]]]]):
         if start_nterm not in nterms:
             raise GrammarException('Начального нетерминала нет в списке нетерминалов',
                                    start_nterm=start_nterm, nterms=nterms)
@@ -242,10 +242,10 @@ class Grammar:
                 ans.append(nterm)
         return ans
 
-    def find_eps_generative_rules(self) -> List[NoTermSymbol]:
+    def find_eps_generative_nterms(self) -> List[NoTermSymbol]:
         """
-        Поиск eps-порождающих правил
-        :return: Список левых частей правил (нетерминалов)
+        Поиск eps-порождающих нетерминалов
+        :return: Список нетерминалов
         """
         ans = set(self.eps_rules)
         i = 0
@@ -263,6 +263,100 @@ class Grammar:
             else:
                 i += 1
         return list(ans)
+
+    def __generate_all_possibke_comb_of_objs(self, objs: List, len_of_comb: int) -> List[List]:
+        """
+        Рекурсивная часть генерации комбинации (без пустого)
+        """
+        if len_of_comb == 0:
+            return []
+        ans = []
+        i_st, i_end = 0, len_of_comb
+        while i_end != len(objs) + 1:
+            ans.append(objs[i_st:i_end])
+            i_st += 1
+            i_end += 1
+        ans.extend(self.__generate_all_possibke_comb_of_objs(objs, len_of_comb-1))
+        return ans
+
+    def __generate_all_possible_comb_of_nterms(self, i_st, i_end, seq, single_rule) -> List[Union[TermSymbol, NoTermSymbol]]:
+        """
+        Генерация всех возможных комбинаций епс-нетерминалов (для удаления епс-правил)
+        """
+        all_combs = self.__generate_all_possibke_comb_of_objs(seq, len(seq)-1)
+        all_combs.append([])
+        ans = []
+        for comb in all_combs:
+            appendee = single_rule[:i_st] + comb + single_rule[i_end:]
+            if len(appendee) != 0:
+                ans.append(appendee)
+        return ans
+
+    def __find_all_nterm_eps_seq(self, single_rule, eps_gen_nterms) -> List[Tuple[List[NoTermSymbol], int, int]]:
+        """
+        Поиск всех последовательностей епс-нетерминалов в одном выводе
+        """
+        ans = []
+        cur_seq = []
+        i_st, i_end = 0, 0
+        for i, sym in enumerate(single_rule):
+            if sym in eps_gen_nterms:
+                cur_seq.append(sym)
+                i_end = i
+            else:
+                if len(cur_seq) == 0:
+                    i_st = i
+                    continue
+                i_st = 0 if i_st == 0 else i_st + 1
+                i_end += 1  # Указывает на следующий после последнего в последовательности епс-нетерминалов
+                ans.append((cur_seq, i_st, i_end))
+                cur_seq = []
+                i_st = i
+        if len(cur_seq) > 0:
+            i_st = 0 if i_st == 0 else i_st + 1
+            i_end += 1  # Указывает на следующий после последнего в последовательности епс-нетерминалов
+            ans.append((cur_seq, i_st, i_end))
+        return ans
+
+    def __generate_new_rhs(self, rhs, eps_gen_nterms) -> List[List[Union[TermSymbol, NoTermSymbol]]]:
+        """
+        Генерация новых выводов при удалении епс-правил
+        """
+        ans = set()
+        already_computed = set()
+        for single_rule in rhs:
+            ans.add(tuple(single_rule))
+            queue = [single_rule]
+            while len(queue) > 0:
+                current_rule = queue.pop()
+                if tuple(current_rule) in already_computed:
+                    continue
+                already_computed.add(tuple(current_rule))
+                all_nterm_seq = self.__find_all_nterm_eps_seq(current_rule, eps_gen_nterms)
+                for nterm_seq in all_nterm_seq:
+                    to_add = self.__generate_all_possible_comb_of_nterms(nterm_seq[1], nterm_seq[2], nterm_seq[0],
+                                                                         current_rule)
+                    for addee in to_add:
+                        queue.append(addee)
+                        ans.add(tuple(addee))
+        return [list(x) for x in ans]
+
+    def delete_eps_rules(self):
+        """
+        Удаление eps-правил
+        :return: Грамматика без епс-правил
+        """
+        eps_gen_nterms = self.find_eps_generative_nterms()
+        new_rules = self.rules
+        for lhs, rhs in self.rules.items():
+            new_rules[lhs] = self.__generate_new_rhs(rhs, eps_gen_nterms)
+            # Удаляем епс-переход
+            new_rules[lhs] = [x for x in new_rules[lhs] if x != [self.eps_terminal]]
+        # Если из старта можно получить eps, то добавляем его к старту
+        if self.initial_nterm in eps_gen_nterms:
+            new_rules[self.initial_nterm].append([self.eps_terminal])
+        return Grammar(name=f'{self.name} без eps-правил', terms=self.terms, nterms=self.nterms,
+                       eps_terminal=self.eps_terminal, start_nterm=self.initial_nterm, rules=new_rules)
 
     def __str__(self):
         return f'Грамматика "{self.name}":\n{self.pretty_string()}'
