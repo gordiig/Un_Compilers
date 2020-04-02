@@ -337,7 +337,8 @@ class Grammar:
                     to_add = self.__generate_all_possible_comb_of_nterms(nterm_seq[1], nterm_seq[2], nterm_seq[0],
                                                                          current_rule)
                     for addee in to_add:
-                        queue.append(addee)
+                        if tuple(addee) not in already_computed:
+                            queue.append(addee)
                         ans.add(tuple(addee))
         return [list(x) for x in ans]
 
@@ -347,16 +348,22 @@ class Grammar:
         :return: Грамматика без епс-правил
         """
         eps_gen_nterms = self.find_eps_generative_nterms()
-        new_rules = self.rules
+        new_rules = self.rules.copy()
+        new_nterms = set([x for x in self.nterms])
+        new_initial = self.initial_nterm
         for lhs, rhs in self.rules.items():
             new_rules[lhs] = self.__generate_new_rhs(rhs, eps_gen_nterms)
             # Удаляем епс-переход
             new_rules[lhs] = [x for x in new_rules[lhs] if x != [self.eps_terminal]]
-        # Если из старта можно получить eps, то добавляем его к старту
+        # Если из старта можно получить eps, то заменяем стартовое состояние
         if self.initial_nterm in eps_gen_nterms:
-            new_rules[self.initial_nterm].append([self.eps_terminal])
-        return Grammar(name=f'{self.name} без eps-правил', terms=self.terms, nterms=self.nterms,
-                       eps_terminal=self.eps_terminal, start_nterm=self.initial_nterm, rules=new_rules)
+            new_nterms.remove(self.initial_nterm)
+            new_nterms.add(NoTermSymbol(self.initial_nterm.symbol, is_initial=False))
+            new_initial = NoTermSymbol(f'{self.initial_nterm.symbol}\'', is_initial=True)
+            new_nterms.add(new_initial)
+            new_rules[new_initial] = [[NoTermSymbol(self.initial_nterm.symbol)], [TermSymbol(self.eps_terminal.symbol)]]
+        return Grammar(name=f'{self.name} без eps-правил', terms=self.terms, nterms=new_nterms,
+                       eps_terminal=self.eps_terminal, start_nterm=new_initial, rules=new_rules)
 
     def __str__(self):
         return f'Грамматика "{self.name}":\n{self.pretty_string()}'
