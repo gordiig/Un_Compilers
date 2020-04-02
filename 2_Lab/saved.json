@@ -1,0 +1,53 @@
+{
+    "name": "Test grammar",
+    "terms": [
+        "b",
+        "c",
+        "eps",
+        "d",
+        "a"
+    ],
+    "nterms": [
+        "A",
+        "C",
+        "S",
+        "D",
+        "B"
+    ],
+    "eps_terminal": "eps",
+    "start_nterm": "S",
+    "rules": {
+        "S": [
+            [
+                "A",
+                "B",
+                "C"
+            ],
+            [
+                "D",
+                "S"
+            ]
+        ],
+        "A": [
+            [
+                "eps"
+            ]
+        ],
+        "B": [
+            [
+                "A",
+                "C"
+            ]
+        ],
+        "C": [
+            [
+                "eps"
+            ]
+        ],
+        "D": [
+            [
+                "d"
+            ]
+        ]
+    }
+}
