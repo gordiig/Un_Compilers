@@ -149,3 +149,13 @@ class Grammar:
             data['rules'][lhs.symbol] = [[y.symbol for y in x] for x in self.rules[lhs]]
         with open(filename, 'w') as f:
             f.write(json.dumps(data, indent=4))
+
+    def pretty_string(self):
+        ans = ''
+        for lhs, rhs in self.rules.items():
+            ans += f'{lhs} -> '
+            for rule in rhs:
+                ans += f'{"".join([x.symbol for x in rule])} | '
+            ans = ans[:-2] + '\n'
+        ans = ans[:-1]
+        return ans
