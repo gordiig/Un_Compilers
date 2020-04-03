@@ -18,5 +18,15 @@ $ python3 main.py
 $ python3 test.py
 ```
 
-- Отчет:
-  https://github.com/gordiig/Un_Compilers/blob/master/1_Lab/ot/TeX/main.pdf
+- [Отчет](https://github.com/gordiig/Un_Compilers/blob/master/1_Lab/ot/TeX/main.pdf)
+  
+  
+## 2 Лаба
+Нужен Python >3.7
+
+- Запуск:
+```
+$ python3 main.py
+```
+
+- [Отчет](https://github.com/gordiig/Un_Compilers/blob/master/2_Lab/ot/TeX/main.pdf)
