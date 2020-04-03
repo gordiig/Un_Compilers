@@ -1,0 +1,32 @@
+\documentclass[12pt, a4paper]{report}
+\frenchspacing
+\usepackage[utf8x]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[russian]{babel}
+
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm,bindingoffset=0cm]{geometry}
+\usepackage{setspace}{\singlespacing}
+
+\usepackage{listings}
+\usepackage{color}
+\usepackage{makecell}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{enumitem}
+
+\graphicspath{{../pics/}}
+
+\setcounter{page}{-1}
+%\setcounter{section}{1}
+%\setcounter{chapter}{1}
+\renewcommand\thesection{\arabic{section}}		% for section number without chapter num
+%\setcounter{secnumdepth}{0} %% no numbering
+
+\begin{document}
+	\input{title}
+	\tableofcontents
+	\input{otchet}
+\end{document}
