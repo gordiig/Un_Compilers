@@ -9,17 +9,22 @@ if __name__ == '__main__':
     """
     print(__head)
 
-    g1 = Grammar.init_from_json_file('test_grammar.json')
+    g1 = Grammar.init_from_json_file('test_grammar_4_9.json')
     print(g1)
-    print(g1.eps_rules)
-    print(g1.find_eps_generative_nterms())
     print()
 
     g2 = g1.delete_eps_rules()
     print(g2)
     print()
 
-    if g2.has_circuits():
-        print('Грамматика без eps-правил содержит цепи, построить новую без левой рекурсии не получится')
-        print('Вариант такой, я не виноват')
-        exit(0)
+    g3 = g2.delete_direct_left_recursion()
+    print(g3)
+    print()
+
+    g4 = g2.delete_left_recursion()
+    print(g4)
+    print()
+
+    g5 = g4.delete_eps_rules()
+    print(g5)
+    print()

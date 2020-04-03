@@ -32,7 +32,7 @@ class TermSymbol:
         elif isinstance(other, NoTermSymbol):
             return False
         else:
-            raise TypeError('TermSymbol можно сравнивать только со строками и другими объектами класса TermSymbol')
+            return False
 
     def __hash__(self):
         return hash(self.symbol)
@@ -63,7 +63,7 @@ class NoTermSymbol:
         elif isinstance(other, TermSymbol):
             return False
         else:
-            raise TypeError('NoTermSymbol можно сравнивать только со строками и другими объектами класса NoTermSymbol')
+            return False
 
     def __hash__(self):
         return hash(self.symbol)
@@ -182,7 +182,7 @@ class Grammar:
         """
         return rule in self.eps_rules
 
-    def has_circuits(self) -> bool:
+    def has_circuits(self, raise_exception: bool = False) -> bool:
         """
         Есть ли цепные правила в грамматике
         <Нетерминал> -> <Нетерминал>
@@ -190,8 +190,35 @@ class Grammar:
         for lhs, rhs in self.rules.items():
             for single_rule in rhs:
                 if len(single_rule) == 1 and isinstance(single_rule[0], NoTermSymbol) and lhs != self.initial_nterm:
+                    if raise_exception:
+                        raise GrammarException('Грамматика содержит цепи')
                     return True
         return False
+
+    def is_direct_left_recursive_rule(self, rule: NoTermSymbol) -> bool:
+        """
+        Является ли правило непостредственно леворекурсивным (начальное правило не в счет)
+        """
+        if rule not in self.rules.keys():
+            raise GrammarException('Нет такого правила', rule=rule)
+        if rule == self.initial_nterm:
+            return False
+        ans = any([x[0] == rule for x in self.rules[rule]])
+        return ans
+
+    def is_direct_left_recursive(self) -> bool:
+        """
+        Является ли грамматика непосредственно леворекурсивной (начальное правило не в счет)
+        """
+        ans = any([self.is_direct_left_recursive_rule(x) for x in self.rules.keys()])
+        return ans
+
+    def get_direct_left_recursive_rules(self) -> List[NoTermSymbol]:
+        """
+        Получение непосредственно леворекурсивных правил
+        """
+        ans = [x for x in self.rules.keys() if self.is_direct_left_recursive_rule(x)]
+        return ans
 
     def term_count_for_rule(self, rule: NoTermSymbol) -> int:
         """
@@ -275,26 +302,26 @@ class Grammar:
                 i += 1
         return list(ans)
 
-    def __generate_all_possibke_comb_of_objs(self, objs: List, len_of_comb: int) -> List[List]:
+    def __generate_all_possibke_comb_of_objs(self, objs: List) -> List[List]:
         """
         Рекурсивная часть генерации комбинации (без пустого)
         """
-        if len_of_comb == 0:
-            return []
-        ans = []
-        i_st, i_end = 0, len_of_comb
-        while i_end != len(objs) + 1:
-            ans.append(objs[i_st:i_end])
-            i_st += 1
-            i_end += 1
-        ans.extend(self.__generate_all_possibke_comb_of_objs(objs, len_of_comb-1))
+        if len(objs) == 1:
+            return [[objs[0]]]
+        ans = [objs]
+        for i in range(len(objs)):
+            ans.extend(self.__generate_all_possibke_comb_of_objs(objs[:i] + objs[i + 1:]))
         return ans
 
     def __generate_all_possible_comb_of_nterms(self, i_st, i_end, seq, single_rule) -> List[Union[TermSymbol, NoTermSymbol]]:
         """
         Генерация всех возможных комбинаций епс-нетерминалов (для удаления епс-правил)
         """
-        all_combs = self.__generate_all_possibke_comb_of_objs(seq, len(seq)-1)
+        all_combs_ = self.__generate_all_possibke_comb_of_objs(seq)
+        all_combs = []
+        for x in all_combs_:
+            if x not in all_combs:
+                all_combs.append(x)
         all_combs.append([])
         ans = []
         for comb in all_combs:
@@ -375,6 +402,57 @@ class Grammar:
             new_rules[new_initial] = [[NoTermSymbol(self.initial_nterm.symbol)], [TermSymbol(self.eps_terminal.symbol)]]
         return Grammar(name=f'{self.name} без eps-правил', terms=self.terms, nterms=new_nterms,
                        eps_terminal=self.eps_terminal, start_nterm=new_initial, rules=new_rules)
+
+    def delete_direct_left_recursion(self):
+        """
+        Удаление непосредственной левой рекурсии
+        :return: Грамматика без непосредственной левой рекурсии
+        """
+        # self.has_circuits(raise_exception=True)  # Проверка на наличие цепей в грамматике
+        new_nterms = self.nterms.copy()
+        new_rules = dict([(x, []) for x in self.rules.keys()])
+        for lhs, rhs in self.rules.items():
+            if not self.is_direct_left_recursive_rule(lhs):  # Не рассматриваем не непосредственно леворекурсивное
+                new_rules[lhs] = rhs.copy()
+                continue
+            new_rule_l = NoTermSymbol(f'{lhs.symbol}\'')
+            new_nterms.add(new_rule_l)
+            recursive_single_rules = [x for x in rhs if x[0] == lhs]  # Леворекурсивные правила
+            non_recursive_single_rules = [x for x in rhs if x[0] != lhs]  # Не леворекурсивные правила
+            new_lhs_rules = [x + [new_rule_l] for x in non_recursive_single_rules]  # Новые правила для текущего lhs
+            new_rule_rules = [x[1:] + [new_rule_l] for x in recursive_single_rules]  # Новые правила для lhs'
+            new_rule_rules.append([self.eps_terminal])
+            new_rules[new_rule_l] = new_rule_rules
+            if len(new_lhs_rules) != 0:
+                new_rules[lhs] = new_lhs_rules
+        ans = Grammar(name=f'{self.name} без непосредственной левой рекурсии', terms=self.terms, nterms=new_nterms,
+                      eps_terminal=self.eps_terminal, start_nterm=self.initial_nterm, rules=new_rules)
+        return ans
+
+    def delete_left_recursion(self):
+        """
+        Устранение левой рекурсии
+        :return: Грамматика без левой рекурсии
+        """
+        self.has_circuits(raise_exception=True)  # Проверка на наличие цепей в грамматике
+        lhss = list(self.rules.keys())
+        new_rules = dict([(x, []) for x in self.rules.keys()])
+        new_rules[self.initial_nterm] = self.rules[self.initial_nterm]
+        for i in range(1, len(lhss)):
+            for j in range(i):
+                lhs_i = lhss[i]
+                lhs_j = lhss[j]
+                for single_rule in self.rules[lhs_i]:
+                    if single_rule[0] == lhs_j:
+                        appendee = [x + single_rule[1:] for x in self.rules[lhs_j]]
+                        new_rules[lhs_i].extend(appendee)
+                    else:
+                        new_rules[lhs_i].append(single_rule)
+        pre_ans = Grammar(name=self.name, terms=self.terms, nterms=self.nterms, eps_terminal=self.eps_terminal,
+                          start_nterm=self.initial_nterm, rules=new_rules)
+        ans = pre_ans.delete_direct_left_recursion()
+        ans.name = f'{self.name} без левой рекурсии'
+        return ans
 
     def __str__(self):
         return f'Грамматика "{self.name}":\n{self.pretty_string()}'
