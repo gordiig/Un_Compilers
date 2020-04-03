@@ -175,13 +175,6 @@ class Grammar:
         ans = ans[:-1]
         return ans
 
-    def is_eps_rule(self, rule: NoTermSymbol) -> bool:
-        """
-        Является ли правило eps-правилом
-        :param rule: Левая часть правила (нетерминал)
-        """
-        return rule in self.eps_rules
-
     def has_circuits(self, raise_exception: bool = False) -> bool:
         """
         Есть ли цепные правила в грамматике
@@ -195,90 +188,7 @@ class Grammar:
                     return True
         return False
 
-    def is_direct_left_recursive_rule(self, rule: NoTermSymbol) -> bool:
-        """
-        Является ли правило непостредственно леворекурсивным (начальное правило не в счет)
-        """
-        if rule not in self.rules.keys():
-            raise GrammarException('Нет такого правила', rule=rule)
-        if rule == self.initial_nterm:
-            return False
-        ans = any([x[0] == rule for x in self.rules[rule]])
-        return ans
-
-    def is_direct_left_recursive(self) -> bool:
-        """
-        Является ли грамматика непосредственно леворекурсивной (начальное правило не в счет)
-        """
-        ans = any([self.is_direct_left_recursive_rule(x) for x in self.rules.keys()])
-        return ans
-
-    def get_direct_left_recursive_rules(self) -> List[NoTermSymbol]:
-        """
-        Получение непосредственно леворекурсивных правил
-        """
-        ans = [x for x in self.rules.keys() if self.is_direct_left_recursive_rule(x)]
-        return ans
-
-    def term_count_for_rule(self, rule: NoTermSymbol) -> int:
-        """
-        Количество терминалов в правой части правила
-        :param rule: Левая часть правила (нетерминал)
-        """
-        return len(self.find_terms_and_nterms_in_rule(rule)[0])
-
-    def nterm_count_for_rule(self, rule: NoTermSymbol) -> int:
-        """
-        Количество нетерминалов в правой части правила
-        :param rule: Левая часть правила (нетерминал)
-        """
-        return len(self.find_terms_and_nterms_in_rule(rule)[1])
-
-    def find_rules_with_term_or_nterm_in_it(self, term: Union[NoTermSymbol, TermSymbol]) -> List[NoTermSymbol]:
-        """
-        Поиск правил, в правой части которых есть нетерминал или терминал
-        :param term: Нетерминал или терминал
-        """
-        ans = []
-        for lhs, rhs in self.rules.items():
-            for single_rule in rhs:
-                if term in single_rule:
-                    ans.append(lhs)
-        return ans
-
-    def find_terms_and_nterms_in_rule(self, rule: NoTermSymbol) -> Tuple[List[TermSymbol], List[NoTermSymbol]]:
-        """
-        Поиск терминальных и нетерминальных символов в правой части
-        """
-        terms, nterms = [], []
-        for single_rule in self.rules[rule]:
-            terms.extend([x for x in single_rule if x in self.terms])
-            nterms.extend([x for x in single_rule if x in self.nterms])
-        return terms, nterms
-
-    def find_rules_with_only_terms(self, with_empty: bool = True) -> List[NoTermSymbol]:
-        """
-        Поиск правил где в правой части только терминалы
-        """
-        ans = []
-        for nterm in self.rules.keys():
-            terms, nterms = self.find_terms_and_nterms_in_rule(nterm)
-            if len(nterms) == 0:
-                if len(terms) == 0 or ((len(terms) == 1) and with_empty):
-                    ans.append(nterm)
-        return ans
-
-    def find_rules_with_only_nterms(self) -> List[NoTermSymbol]:
-        """
-        Поиск правил где в правой части только нетерминалы
-        :return:
-        """
-        ans = []
-        for nterm in self.rules.keys():
-            terms, _ = self.find_terms_and_nterms_in_rule(nterm)
-            if len(terms) == 0:
-                ans.append(nterm)
-        return ans
+    # MARK: - Eps-rules removing
 
     def find_eps_generative_nterms(self) -> List[NoTermSymbol]:
         """
@@ -403,6 +313,26 @@ class Grammar:
         return Grammar(name=f'{self.name} без eps-правил', terms=self.terms, nterms=new_nterms,
                        eps_terminal=self.eps_terminal, start_nterm=new_initial, rules=new_rules)
 
+    # MARK: - Left recursion removing
+
+    def is_direct_left_recursive_rule(self, rule: NoTermSymbol) -> bool:
+        """
+        Является ли правило непостредственно леворекурсивным (начальное правило не в счет)
+        """
+        if rule not in self.rules.keys():
+            raise GrammarException('Нет такого правила', rule=rule)
+        if rule == self.initial_nterm:
+            return False
+        ans = any([x[0] == rule for x in self.rules[rule]])
+        return ans
+
+    def is_direct_left_recursive(self) -> bool:
+        """
+        Является ли грамматика непосредственно леворекурсивной (начальное правило не в счет)
+        """
+        ans = any([self.is_direct_left_recursive_rule(x) for x in self.rules.keys()])
+        return ans
+
     def delete_direct_left_recursion(self):
         """
         Удаление непосредственной левой рекурсии
@@ -452,6 +382,82 @@ class Grammar:
                           start_nterm=self.initial_nterm, rules=new_rules)
         ans = pre_ans.delete_direct_left_recursion()
         ans.name = f'{self.name} без левой рекурсии'
+        return ans
+
+    # MARK: - Utils (not used)
+
+    def is_eps_rule(self, rule: NoTermSymbol) -> bool:
+        """
+        Является ли правило eps-правилом
+        :param rule: Левая часть правила (нетерминал)
+        """
+        return rule in self.eps_rules
+
+    def get_direct_left_recursive_rules(self) -> List[NoTermSymbol]:
+        """
+        Получение непосредственно леворекурсивных правил
+        """
+        ans = [x for x in self.rules.keys() if self.is_direct_left_recursive_rule(x)]
+        return ans
+
+    def term_count_for_rule(self, rule: NoTermSymbol) -> int:
+        """
+        Количество терминалов в правой части правила
+        :param rule: Левая часть правила (нетерминал)
+        """
+        return len(self.find_terms_and_nterms_in_rule(rule)[0])
+
+    def nterm_count_for_rule(self, rule: NoTermSymbol) -> int:
+        """
+        Количество нетерминалов в правой части правила
+        :param rule: Левая часть правила (нетерминал)
+        """
+        return len(self.find_terms_and_nterms_in_rule(rule)[1])
+
+    def find_rules_with_term_or_nterm_in_it(self, term: Union[NoTermSymbol, TermSymbol]) -> List[NoTermSymbol]:
+        """
+        Поиск правил, в правой части которых есть нетерминал или терминал
+        :param term: Нетерминал или терминал
+        """
+        ans = []
+        for lhs, rhs in self.rules.items():
+            for single_rule in rhs:
+                if term in single_rule:
+                    ans.append(lhs)
+        return ans
+
+    def find_terms_and_nterms_in_rule(self, rule: NoTermSymbol) -> Tuple[List[TermSymbol], List[NoTermSymbol]]:
+        """
+        Поиск терминальных и нетерминальных символов в правой части
+        """
+        terms, nterms = [], []
+        for single_rule in self.rules[rule]:
+            terms.extend([x for x in single_rule if x in self.terms])
+            nterms.extend([x for x in single_rule if x in self.nterms])
+        return terms, nterms
+
+    def find_rules_with_only_terms(self, with_empty: bool = True) -> List[NoTermSymbol]:
+        """
+        Поиск правил где в правой части только терминалы
+        """
+        ans = []
+        for nterm in self.rules.keys():
+            terms, nterms = self.find_terms_and_nterms_in_rule(nterm)
+            if len(nterms) == 0:
+                if len(terms) == 0 or ((len(terms) == 1) and with_empty):
+                    ans.append(nterm)
+        return ans
+
+    def find_rules_with_only_nterms(self) -> List[NoTermSymbol]:
+        """
+        Поиск правил где в правой части только нетерминалы
+        :return:
+        """
+        ans = []
+        for nterm in self.rules.keys():
+            terms, _ = self.find_terms_and_nterms_in_rule(nterm)
+            if len(terms) == 0:
+                ans.append(nterm)
         return ans
 
     def __str__(self):
