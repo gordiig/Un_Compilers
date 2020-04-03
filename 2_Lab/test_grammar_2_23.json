@@ -1,0 +1,19 @@
+{
+  "name": "Test grammar Ulman 2.23",
+
+  "eps_terminal": "e",
+  "terms": [
+    "a",
+    "b",
+    "e"
+  ],
+  "nterms": [
+    "S"
+  ],
+  "start_nterm": "S",
+
+  "rules": {
+    "S": [["a", "S", "b", "S"], ["b", "S", "a", "S"], ["e"]]
+  }
+
+}

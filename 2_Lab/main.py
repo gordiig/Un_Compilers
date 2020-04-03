@@ -10,3 +10,8 @@ if __name__ == '__main__':
 
     g2 = g1.delete_eps_rules()
     print(g2)
+    print()
+
+    if g2.has_circuits():
+        print('Грамматика без eps-правил содержит цепи, построить новую без левой рекурсии не получится')
+        exit(0)

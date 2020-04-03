@@ -182,6 +182,17 @@ class Grammar:
         """
         return rule in self.eps_rules
 
+    def has_circuits(self) -> bool:
+        """
+        Есть ли цепные правила в грамматике
+        <Нетерминал> -> <Нетерминал>
+        """
+        for lhs, rhs in self.rules.items():
+            for single_rule in rhs:
+                if len(single_rule) == 1 and isinstance(single_rule[0], NoTermSymbol) and lhs != self.initial_nterm:
+                    return True
+        return False
+
     def term_count_for_rule(self, rule: NoTermSymbol) -> int:
         """
         Количество терминалов в правой части правила
@@ -305,15 +316,15 @@ class Grammar:
                 i_end = i
             else:
                 if len(cur_seq) == 0:
-                    i_st = i
+                    i_st += 1
                     continue
-                i_st = 0 if i_st == 0 else i_st + 1
+                # i_st = 0 if i_st == 0 else i_st + 1
                 i_end += 1  # Указывает на следующий после последнего в последовательности епс-нетерминалов
                 ans.append((cur_seq, i_st, i_end))
                 cur_seq = []
-                i_st = i
+                i_st = i_end+1
         if len(cur_seq) > 0:
-            i_st = 0 if i_st == 0 else i_st + 1
+            # i_st = 0 if i_st == 0 else i_st + 1
             i_end += 1  # Указывает на следующий после последнего в последовательности епс-нетерминалов
             ans.append((cur_seq, i_st, i_end))
         return ans
