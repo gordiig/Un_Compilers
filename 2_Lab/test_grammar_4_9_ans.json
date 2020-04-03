@@ -1,0 +1,25 @@
+{
+  "name": "Answer to grammar Ulman 4.9 (4.12)",
+
+  "eps_terminal": "e",
+  "terms": [
+    "a",
+    "b",
+    "c",
+    "d",
+    "e"
+  ],
+  "nterms": [
+    "S",
+    "A",
+    "A'"
+  ],
+  "start_nterm": "S",
+
+  "rules": {
+    "S": [["A", "a"], ["b"]],
+    "A": [["b", "d", "A'"], ["A'"]],
+    "A'": [["c", "A'"], ["a", "d", "A'"], ["e"]]
+  }
+
+}

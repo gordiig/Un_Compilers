@@ -1,0 +1,30 @@
+{
+  "name": "Answer to grammar Ulman 2.23",
+
+  "eps_terminal": "e",
+  "terms": [
+    "a",
+    "b",
+    "e"
+  ],
+  "nterms": [
+    "S",
+    "S'"
+  ],
+  "start_nterm": "S'",
+
+  "rules": {
+    "S'": [["S"], ["e"]],
+    "S": [
+      ["a", "S", "b", "S"],
+      ["b", "S", "a", "S"],
+      ["a", "S", "b"],
+      ["a", "b", "S"],
+      ["a", "b"],
+      ["b", "S", "a"],
+      ["b", "a", "S"],
+      ["b", "a"]
+    ]
+  }
+
+}

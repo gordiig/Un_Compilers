@@ -470,5 +470,18 @@ class Grammar:
                 ans.append(nterm)
         return ans
 
+    def __eq__(self, other):
+        if not isinstance(other, Grammar):
+            return False
+        if self.nterms == other.nterms and self.terms == other.terms and self.eps_terminal == other.eps_terminal \
+           and self.initial_nterm == other.initial_nterm and self.rules.keys() == other.rules.keys():
+            for lhs in self.rules.keys():
+                rhs = set([tuple(x) for x in self.rules[lhs]])
+                rhss = set([tuple(x) for x in other.rules[lhs]])
+                if rhs != rhss:
+                    return False
+            return True
+        return False
+
     def __str__(self):
         return f'Грамматика "{self.name}":\n{self.pretty_string()}'
