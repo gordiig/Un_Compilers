@@ -34,6 +34,9 @@ class TermSymbol:
         else:
             return False
 
+    def __len__(self):
+        return len(self.symbol)
+
     def __hash__(self):
         return hash(self.symbol)
 
@@ -65,6 +68,9 @@ class NoTermSymbol:
         else:
             return False
 
+    def __len__(self):
+        return len(self.symbol)
+
     def __hash__(self):
         return hash(self.symbol)
 
@@ -92,6 +98,8 @@ class Grammar:
         if eps_terminal not in terms:
             raise GrammarException('Пустого символа нет в списке терминалов',
                                    eps_terminal=eps_terminal, terms=terms)
+        if len(eps_terminal) > 1:
+            raise GrammarException('Епсилон-символ должен быть длинны 1', eps_terminal=eps_terminal)
         if len(nterms) < len(rules.keys()):
             raise GrammarException('Нетерминалов больше, чем правил', nterms=nterms, rules=rules)
         self.name = name
@@ -107,6 +115,8 @@ class Grammar:
             cur_lhs = nterm[0]
             cur_rhs = []
             for rhs_part in rhs:
+                if eps_terminal in rhs_part and len(rhs_part) > 1:  # Затирка ненужных eps-символов
+                    rhs_part.remove(eps_terminal)
                 cur_part = []
                 for operand in rhs_part:
                     if operand in self.terms:
