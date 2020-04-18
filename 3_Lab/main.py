@@ -1,5 +1,5 @@
 from grammar import Grammar
-from ll import build_tree
+from ll import build_tree, graph_tree
 
 
 if __name__ == '__main__':
@@ -8,28 +8,37 @@ if __name__ == '__main__':
 
     initial = g.initial_nterm
 
-    expr = '{x=2==2}'
+    expr = '{x=2<2}'
     print(expr)
     is_ok, _ = build_tree(grammar=g, current_symbol=initial, string_to_read=expr)
-    print(f'{is_ok}, должно быть True\n')
+    if is_ok is not None:
+        graph_tree(is_ok, filename='2l2')
+    print(f'{is_ok is not None}, должно быть True\n')
 
     expr = '{x=2*3>=2/4}'
     print(expr)
     is_ok, _ = build_tree(grammar=g, current_symbol=initial, string_to_read=expr)
-    print(f'{is_ok}, должно быть True\n')
+    if is_ok is not None:
+        graph_tree(is_ok, filename='2m3ge2d4')
+    print(f'{is_ok is not None}, должно быть True\n')
 
     expr = '{x=(2+3)<2}'
     print(expr)
     is_ok, _ = build_tree(grammar=g, current_symbol=initial, string_to_read=expr)
-    print(f'{is_ok}, должно быть True\n')
+    if is_ok is not None:
+        graph_tree(is_ok, filename='p2p3pl2')
+    print(f'{is_ok is not None}, должно быть True\n')
 
     expr = '{x=2===2}'
     print(expr)
     is_ok, _ = build_tree(grammar=g, current_symbol=initial, string_to_read=expr)
-    print(f'{is_ok}, должно быть False\n')
+    if is_ok is not None:
+        graph_tree(is_ok, filename='2eee2')
+    print(f'{is_ok is not None}, должно быть False\n')
 
     expr = '{x=2=3/4==2}'
     print(expr)
     is_ok, _ = build_tree(grammar=g, current_symbol=initial, string_to_read=expr)
-    print(f'{is_ok}, должно быть False\n')
-
+    if is_ok is not None:
+        graph_tree(is_ok, filename='2a3d5ee2')
+    print(f'{is_ok is not None}, должно быть False\n')
