@@ -1,0 +1,23 @@
+{
+  "name": "Ulmat 4.14",
+
+  "eps_terminal": "e",
+  "terms": [
+    "a",
+    "b",
+    "c",
+    "d",
+    "e"
+  ],
+  "nterms": [
+    "S",
+    "A"
+  ],
+  "start_nterm": "S",
+
+  "rules": {
+    "S": [["c", "A", "d"]],
+    "A": [["a", "b"], ["a"]]
+  }
+
+}

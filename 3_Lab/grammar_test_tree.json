@@ -1,0 +1,23 @@
+{
+  "name": "Test tree",
+
+  "eps_terminal": "e",
+  "terms": [
+    "a",
+    "b",
+    "e"
+  ],
+  "nterms": [
+    "S",
+    "A",
+    "B"
+  ],
+  "start_nterm": "S",
+
+  "rules": {
+    "S": [["a", "b", "A"], ["b", "a", "B"]],
+    "A": [["b"], ["a", "B"]],
+    "B": [["a"]]
+  }
+
+}
