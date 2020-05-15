@@ -25,7 +25,7 @@ def _get_priority(stack_symbol: str, next_symbol: str) -> Optional[str]:
     sum_ops = ('+', '-')
     mul_ops = ('*', '/', '%', '^')
     rel_ops = ('<', '<=', '>', '>=', '<>', '==')
-    numbers = tuple(str(i) for i in range(9))
+    numbers = tuple(str(i) for i in range(10))
 
     if stack_symbol in sum_ops:
         return '>' if next_symbol in sum_ops + rel_ops + (')', '$') else '<'
@@ -51,7 +51,7 @@ def _get_nterm_of_rule(stack_slice: List) -> Tuple[Optional[str], Optional[str]]
     sum_ops = ('+', '-')
     mul_ops = ('*', '/', '%', '^')
     rel_ops = ('<', '<=', '>', '>=', '<>', '==')
-    numbers = tuple(str(i) for i in range(9))
+    numbers = tuple(str(i) for i in range(10))
     if len(stack_slice) == 3:
         if ''.join(stack_slice) == '(E)':
             return 'E', ''
@@ -67,7 +67,7 @@ def analyze_string(input_str: str) -> Optional[str]:
     """
     ПС-анализатор
     """
-    numbers = tuple(str(i) for i in range(9))
+    numbers = tuple(str(i) for i in range(10))
     numbers_stack = []
     input_str = ''.join([symbol for symbol in input_str if symbol not in [' ', '\n']]) + '$'
     stack = ['$']
