@@ -44,7 +44,7 @@ def _get_priority(stack_symbol: str, next_symbol: str) -> Optional[str]:
     return None
 
 
-def _get_nterm_of_rule(stack_slice: List) -> Tuple[Optional[str], Optional[str]]:
+def _get_nterm_of_rule(stack_slice: List) -> Optional[str]:
     """
     Получаем левую часть правила по правой
     """
@@ -54,13 +54,13 @@ def _get_nterm_of_rule(stack_slice: List) -> Tuple[Optional[str], Optional[str]]
     numbers = tuple(str(i) for i in range(10))
     if len(stack_slice) == 3:
         if ''.join(stack_slice) == '(E)':
-            return 'E', ''
+            return 'E'
         if stack_slice[0] == 'E' and stack_slice[2] == 'E' and stack_slice[1] in sum_ops + mul_ops + rel_ops:
-            return 'E', stack_slice[1]
+            return 'E'
     elif len(stack_slice) == 1:
         if stack_slice[0] in numbers:
-            return 'E', stack_slice[0]
-    return None, None
+            return 'E'
+    return None
 
 
 def analyze_string(input_str: str) -> Optional[str]:
@@ -89,15 +89,14 @@ def analyze_string(input_str: str) -> Optional[str]:
             # Свертка
             for i in range(1, len(stack)):
                 stack_slice = stack[-i:]
-                lhs_nterm, postfix_appendee = _get_nterm_of_rule(stack_slice)
+                lhs_nterm = _get_nterm_of_rule(stack_slice)
                 if lhs_nterm is not None:
                     stack = stack[:-i]
                     stack.append(lhs_nterm)
                     if len(stack_slice) == 3 and stack_slice[0] != '(':
-                        postfix_appendee = numbers_stack.pop() + postfix_appendee
-                        if len(postfix) == 0:
-                            postfix_appendee = numbers_stack.pop() + postfix_appendee
-                        postfix = postfix_appendee + postfix
+                        while len(numbers_stack) > 0:
+                            postfix += numbers_stack.pop(0)
+                        postfix += stack_slice[1]
                     break
             else:
                 return None
