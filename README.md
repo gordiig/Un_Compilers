@@ -41,3 +41,14 @@ $ python3 main.py
 ```
 
 - [Отчет](https://github.com/gordiig/Un_Compilers/blob/master/3_Lab/ot/TeX/main.pdf)
+
+
+## 4 Лаба
+Нужен Python >3.7
+
+- Запуск:
+```
+$ python3 main.py
+```
+
+- [Отчет](https://github.com/gordiig/Un_Compilers/blob/master/4_Lab/ot/TeX/main.pdf)
